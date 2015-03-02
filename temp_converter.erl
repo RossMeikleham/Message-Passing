@@ -29,9 +29,11 @@ temperature_converter() ->
 % Sends a timer message to celcius and farenheit processes
 % every second
 clock(Celcius_PID, Farenheit_PID) ->
+%    Celcius_Ref = erlang:monitor(celcius_sensor, Celcius_PID),
+%    Farenheit_Ref = erlang:monitor(farenheit_sensor, Farenheit_PID),
     timer:sleep(1000),
     Celcius_PID ! timer,
-    Farenheit_PID ! timer,
+%    Farenheit_PID ! timer,
     clock(CELCIUS_PID, FARENHEIT_PID).
 
 %Sensor which reads temperatures in Celcius
@@ -43,8 +45,15 @@ celcius_sensor(Temps, Display_PID, Temp_Conv_PID) ->
             celcius_sensor(Temps, Display_PID, Temp_Conv_PID);
         
         %Send head temperature to converter
-        timer -> Temp_Conv_PID ! {self(), Temp},
-                 celcius_sensor(Temps, Display_PID, Temp_Conv_PID)
+        timer -> case Temps 
+                   % If we have temperatures to send, send the first
+                   [Temp | RestTemps] ->  
+                      Temp_Conv_PID ! {self(), Temp},
+                      celcius_sensor(RestTemps, Display_PID, Temp_Conv_PID);
+
+                    [] ->
+                      celcius_sensor([], Display_PID, Temp_Conv_PID)
+                 end
     end.
 
 
