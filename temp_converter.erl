@@ -7,47 +7,60 @@
 
 % Display a temperature
 display() ->
-    {convertToCelcius, c f}
+    receive
+        {From, message} ->
+            io:fwrite(message),
+            display()
+    end.
 
+% Convert Celcius/Farenheit temperatures
 temperature_converter() ->
     receive  
+        % Farenheit to Celcius
         {convertToCelsius, Celcius_PID, T} -> 
-            Celcius_PID ! {T, ((9/5) * T + 32)} 
+            Celcius_PID ! {temperature, T, ((9/5) * T + 32)}; 
 
+        % Celcius to Farenheit
         {convertToFarenheit, Farenheit_PID, T} ->    
-            Farenheit_PID ! {T, (T - 32) * (5/9)}
+            Farenheit_PID ! {temperature, T, (T - 32) * (5/9)}
+     end,
+     temperature_converter()
 
-clock(CELCIUS_PID, FARENHEIT_PID) ->
+% Sends a timer message to celcius and farenheit processes
+% every second
+clock(Celcius_PID, Farenheit_PID) ->
     timer:sleep(1000),
-    CELCIUS_PID ! self(),
-    FARENHEIT_PID ! self(),
+    Celcius_PID ! timer,
+    Farenheit_PID ! timer,
     clock(CELCIUS_PID, FARENHEIT_PID).
 
-%Sensor which reads temperatures in celcius
-celcius_sensor([], Display_PID, Temp_Conv_PID) ->
-
-celcius_sensor([Temp | RestTemps], Display_PID, Temp_Conv_PID) ->
+%Sensor which reads temperatures in Celcius
+celcius_sensor(Temps, Display_PID, Temp_Conv_PID) ->
     receive
         %Temperature converted, send message to display
-        {temperature_converter, C, F} -> Display_PID ! 
-            io:format("Converted ~p degrees celcius to ~p degrees farenheit", [C, F])
+        {temperature, C, F} -> Display_PID ! 
+            io:format("Converted ~p degrees celcius to ~p degrees farenheit", [C, F]),
+            celcius_sensor(Temps, Display_PID, Temp_Conv_PID);
         
         %Send head temperature to converter
-        Timer -> Temp_Conv_PID ! {self(), Temp}
-    end,
-    celcius_sensor(RestTemps, Display_PID, Temp_Conv_PID) 
+        timer -> Temp_Conv_PID ! {self(), Temp},
+                 celcius_sensor(Temps, Display_PID, Temp_Conv_PID)
+    end.
 
-farenheit_sensor([], Display_PID, Temp_Conv_PID) ->
-    %Finished
 
-farenheit_sensor([HeadTemp | RestTemps] , Display_PID, Temp_Conv_PID) ->
+%Sensor which rads temperatures in Farenheit
+farenheit_sensor(Temps , Display_PID, Temp_Conv_PID) ->
     receive
         %Temperature converted, send message to display
-        {temperature_converter, F, C} -> Display_PID !
-            io:format("Converted ~p degrees farenheit to ~p degrees celcius", [F, C])
+        {temperature, F, C} -> Display_PID !
+            io:format("Converted ~p degrees farenheit to ~p degrees celcius.~n", [F, C]),
+            farenheit_sensor([Temp | RestTemps], Display_PID, Temp_Conv_PID)
         
         % Send head temperature to converter    
-        Timer -> 
+        timer -> Temp_Conv_PID ! {self(), Temps},
+                 farenheit_sensor(RestTemps, Display_PID, Temp_Conv_PID)
+     end.
+
 
 start() ->
     Display_PID = spawn(temp_sensors, display)
