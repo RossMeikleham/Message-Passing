@@ -57,8 +57,12 @@ celcius_sensor(Temps, Display_PID, Temp_Conv_PID) ->
                    [Temp | RestTemps] ->  
                       Temp_Conv_PID ! {convertToFarenheit, self(), Temp},
                       celcius_sensor(RestTemps, Display_PID, Temp_Conv_PID);
-                    % No temperatures to send
+
+                    % No temperatures to send, we'll just generate a random one
                     [] ->
+                      random:seed(erlang:now()),
+                      Temp = float(random:uniform(1000) - 500),
+                      Temp_Conv_PID ! {convertToFarenheit, self(), Temp}, 
                       celcius_sensor([], Display_PID, Temp_Conv_PID)
                  end
     end.
@@ -80,8 +84,11 @@ farenheit_sensor(Temps , Display_PID, Temp_Conv_PID) ->
                       Temp_Conv_PID ! {convertToCelsius, self(), Temp}, 
                       farenheit_sensor(RestTemps, Display_PID, Temp_Conv_PID);
                     
-                   % No temperatures to send
+                   % No temperatures to send, we'll just generate a random one
                    [] ->
+                      random:seed(erlang:now()),
+                      Temp = float(random:uniform(1000) - 500),
+                      Temp_Conv_PID ! {convertToCelsius, self(), Temp}, 
                       farenheit_sensor([], Display_PID, Temp_Conv_PID)
                  end
      end.
@@ -119,7 +126,8 @@ start() ->
     % Check no celcius temps works
     monitor_temps([], [10.0, 20.0], 3000),
     %Check no farenheit temps works
-    monitor_temps([143.27, 27.2, 33.3], [], 4000).  
-
+    monitor_temps([143.27, 27.2, 33.3], [], 4000),
+    % Check with no temperatures
+    monitor_temps([], [], 4000).
 
 
