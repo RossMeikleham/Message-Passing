@@ -1,0 +1,47 @@
+\documentclass[fleqn]{report} 
+\usepackage{listings}
+\begin{document}
+
+Choice of Language:
+
+I've used both Scala and Java before, so I decided to try out Erlang. The installation process was
+trivial for my system, as my package manager took care of it.
+
+Running programs was quite straight forward, it works the same way as Java, having to compile then run although
+I had to find out that you needed a certain flag when running the erlang shell to execute the compiled 
+erlang source file, as otherwise it just brought me straight to the shell.
+
+However the error messages were
+very unhelpful. Again it took me a while to realise the "expected" way to run erlang programs is
+to open a shell session, compile and run from the shell. I was then getting helpful error
+messages running my programs this way.
+
+At the point I'd like to point out the general searching for how to actually find out
+these methods was very frustrating compared to any other language I've ever used. 
+General tutorials were very sparse, and sites such as Stackoverflow didn't have
+any questions/answers on very basic topics. I'm not sure if this is down to
+the language not being that popular, but at points it was almost changing my
+mind to work with Scala. 
+
+The language itself was rather strange in regards to syntax, never encountered a language which uses
+commas to seperate statements and a full-stop to mark the end. A bbit more confusing was
+if statements/case statements when having to use a semi colon to mark the end of those cases
+and the last case is not marked with anything. However I got used to the syntax pretty quickly.
+It helped that I installed a plugin for my text editor a while ago which highlights warnings
+and errors with source files, and was surprised to see it was working with Erlang, it helped
+point out simple syntax errors as I was making them.
+
+Message Passing
+
+Once I got over the initial hurdle of running general programs, and learning the syntax of the language,
+as well as discovering documentation on the libraries available I decided to start learning about
+message passing. I was quite surpised the documentation and tutorials I could find on this
+topic with Erlang was really good and I built a simple example really quickly.
+
+The message passing in Erlang was pretty good.
+
+
+\lstinputlisting[basicstyle=\ttfamily\scriptsize, language=erlang]{temp_converter.erl}
+
+
+\end{document}
