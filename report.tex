@@ -1,45 +1,124 @@
 \documentclass[fleqn]{report} 
 \usepackage{listings}
+\usepackage[margin=1.3in]{geometry}
 \begin{document}
 
-Choice of Language:
+\title{Advanced Operating Systems(M) Exercise 3}
+\author{Ross Meikleham\\ 1107023m}
+\maketitle
 
-I've used both Scala and Java before, so I decided to try out Erlang. The installation process was
-trivial for my system, as my package manager took care of it.
+\section*{Choice of Language:}
 
-Running programs was quite straight forward, it works the same way as Java, having to compile then run although
-I had to find out that you needed a certain flag when running the erlang shell to execute the compiled 
-erlang source file, as otherwise it just brought me straight to the shell.
+The message passing examples with Java + Akka that that I
+found were extremely verbose and boilerplate heavy.\\
+A "Hello World" example I found involved having to import multiple Akka classes, 
+extending Actor classes, and overriding multiple methods. \\
+The process of creating actors, and message sending also seems very verbose; for example to create
+an actor in the "Hello World" example it involves the following statement:
+\vspace{2mm}
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize, language=Java]
+final ActorRef greeter = getContext().actorOf(Props.create(Greeter.class), "greeter");
+\end{lstlisting}
+\vspace{2mm}
+Scala with Akka seemed much nicer, it still involves importing Akka classes and 
+extending classes to create actors, but examples I found were
+far more simpler and less boilerplate heavy than Java + Akka versions.\\
 
-However the error messages were
-very unhelpful. Again it took me a while to realise the "expected" way to run erlang programs is
-to open a shell session, compile and run from the shell. I was then getting helpful error
-messages running my programs this way.
+I decided to choose Erlang due to the dynamic nature of the language which makes
+it much less verbose than the other two languages. Having message passing built in as 
+part of the language is helpful as it removes the need to download and install
+an extra library.
+The purely functional nature of the language helps with the "safety" of message passing,
+such as enforcing that messages not being altered after they are sent due to immutability. 
 
-At the point I'd like to point out the general searching for how to actually find out
-these methods was very frustrating compared to any other language I've ever used. 
-General tutorials were very sparse, and sites such as Stackoverflow didn't have
-any questions/answers on very basic topics. I'm not sure if this is down to
-the language not being that popular, but at points it was almost changing my
-mind to work with Scala. 
+The disadvantages of this choice I felt at the time were that I didn't know the language, 
+and I don't have nearly as much experience with functional programming languages than I do 
+with imperative/OOP languages. Also the syntax of the Erlang language is unlike any other 
+language that I've ever encountered. These disadvantages could mean that it could
+take longer to implement the system than if I used a language in a paradigm 
+I was more familiar with. Also Erlang doesn't seem to be a very popular language meaning
+that documentation, tutorials, and discussion on problems with the language on the web
+could possibly be lacking compared to Java and Scala.
 
-The language itself was rather strange in regards to syntax, never encountered a language which uses
-commas to seperate statements and a full-stop to mark the end. A bbit more confusing was
+\section*{Installation:}
+
+The installation process for erlang on my system was extremely simple.
+I literally had to enter one command and my package manager installed it with
+no problems.\\ 
+
+Using the LearnYouSomeErlang tutorials made it trivial to get some example
+programs running and learning the basic language features/syntax. 
+Although my suspicions were confirmed in that general tutorials and documentation seemed 
+very lacking compared to any other programming language I've ever used. 
+If it wern't for the LYSE tutorials then I think I would have found it a much more
+frustrating experience learning the language.\\  
+
+The language itself was rather strange in regards to syntax, 
+I've never encountered a language which uses
+commas to seperate statements and a full-stop to mark the last one. A bit more confusing was
 if statements/case statements when having to use a semi colon to mark the end of those cases
-and the last case is not marked with anything. However I got used to the syntax pretty quickly.
+except the last case. However I got used to the syntax pretty quickly.
 It helped that I installed a plugin for my text editor a while ago which highlights warnings
-and errors with source files, and was surprised to see it was working with Erlang, it helped
-point out simple syntax errors as I was making them.
+and errors with source files, and was surprised to see it worked with Erlang, and it was
+a huge help in pointing out the numerous simple syntax errors as I was making them.
 
-Message Passing
+\section*{Design:}
 
-Once I got over the initial hurdle of running general programs, and learning the syntax of the language,
-as well as discovering documentation on the libraries available I decided to start learning about
-message passing. I was quite surpised the documentation and tutorials I could find on this
-topic with Erlang was really good and I built a simple example really quickly.
+I designed the system such that each actor is represented by a function. Each actor
+except the clock actor waits to recieve a message, works out the type of message
+using pattern matching, and then sends another message to another actor. Using 
+recursion each actor can wait for the next message after performing the action
+required from a previous message.\\
 
-The message passing in Erlang was pretty good.
+To start the system, a function is called which spawns all actors except the clock actor
+and passes the appropriate Process Ids to each actor so they can send messages
+to the correct processes. The clock actor is then called with a given time to run for.\\
 
+The clock actor, waits for 1 second, then sends a message to both the farenheit actor,
+and celcius actors to read temperatures. It then recursively calls itself lowering
+the time by 1 second, and after the time becomes 0 it then doesn't call itself
+again, ending the recursive loop. Then the system exits the rest of the processes
+still running for the 4 remaining actors.\\
+
+Some unusual features of my design is that the system takes a time value in milliseconds
+to run for, so I had control over starting and stopping the system. Also the sensors
+themselves take a predefined list of temperatures (so I was able to test the conversions)
+and then if the lists run out then just generate random numbers to convert.\\
+
+\section*{Overall Opinion:}
+
+One thing I like about the system is that any actor can be replaced without
+affecting the others. For example the temperature sensors could be replaced with
+functions which actually calculate the current temperature and none of the other
+actors would need to be changed at all.\\
+
+Although one thing I dislike and am skeptical about is error handling, as the
+erlang philosophy is to let it crash and let a higher process deal
+with the error. Depending on the implementation of an actor there could be
+different kinds of errors which need to be accounted for.\\
+
+I don't thing the erlang message passing system is suitable for non-expert
+programmers to use. The syntax and general functional paradigm 
+used in the language would take too long for non-expert programmers to get 
+used to. Most non-expert programmers would be used to imperative/OOP languages
+such as Java, and even Scala can be used in an OOP way. So I think non-expert
+programmers would be better off using a more familiar language such
+as Scala or Java and learning the Akka library so they only have
+to focus on learning the basics of message passing and not an entire
+programming language. \\
+
+Also erlang seems like a very specialised language that is
+suited for very specific problems. Using it purely for
+the fact it has message passing as a language feature 
+seems overkill compared to using a more "general purpose" 
+language and learning a message passing library.
+
+I think message passing itself seems like a very good idea for specific 
+problems, it was very easy to use due the fact it takes away having
+to manually manage threads and locks, and helps avoid race conditions.
+  
+\newpage
+\section*{Code Listing:}
 
 \lstinputlisting[basicstyle=\ttfamily\scriptsize, language=erlang]{temp_converter.erl}
 
